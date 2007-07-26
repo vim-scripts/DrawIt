@@ -2,8 +2,8 @@
 "               save/restore mark position
 "               save/restore selected user maps
 "  Author:	Charles E. Campbell, Jr.
-"  Version:	15e	ASTRO-ONLY
-"  Date:	Apr 10, 2006
+"  Version:	16
+"  Date:	Feb 12, 2007
 "
 "  Saving Restoring Destroying Marks: {{{1
 "       call SaveMark(markname)       let savemark= SaveMark(markname)
@@ -18,6 +18,10 @@
 "		\rwp : restore current window/buffer's previous position
 "       commands: SWP RWP
 "
+"  Saving And Restoring User Maps: {{{1
+"       call SaveUserMaps(mapmode,maplead,mapchx,suffix)
+"       call RestoreUserMaps(suffix)
+"
 " GetLatestVimScripts: 1066 1 :AutoInstall: cecutil.vim
 "
 " You believe that God is one. You do well. The demons also {{{1
@@ -28,7 +32,7 @@
 if &cp || exists("g:loaded_cecutil")
  finish
 endif
-let g:loaded_cecutil = "v15e"
+let g:loaded_cecutil = "v16"
 let s:keepcpo        = &cpo
 set cpo&vim
 "DechoVarOn
@@ -48,11 +52,11 @@ nmap <silent> <Plug>SaveWinPosn		:call SaveWinPosn()<CR>
 nmap <silent> <Plug>RestoreWinPosn	:call RestoreWinPosn()<CR>
 
 " Command Interface: {{{2
-com -bar -nargs=0 SWP	call SaveWinPosn()
-com -bar -nargs=0 RWP	call RestoreWinPosn()
-com -bar -nargs=1 SM	call SaveMark(<q-args>)
-com -bar -nargs=1 RM	call RestoreMark(<q-args>)
-com -bar -nargs=1 DM	call DestroyMark(<q-args>)
+com! -bar -nargs=0 SWP	call SaveWinPosn()
+com! -bar -nargs=0 RWP	call RestoreWinPosn()
+com! -bar -nargs=1 SM	call SaveMark(<q-args>)
+com! -bar -nargs=1 RM	call RestoreMark(<q-args>)
+com! -bar -nargs=1 DM	call DestroyMark(<q-args>)
 
 if v:version < 630
  let s:modifier= "sil "
@@ -352,12 +356,13 @@ endfun
 "                    ex. "n" = Normal
 "                    If the first letter is u, then unmapping will be done
 "                    ex. "un" = Normal + unmapping
+"          maplead - see mapchx
 "          mapchx  - "<something>" handled as a single map item.
 "                    ex. "<left>"
 "                  - "string" a string of single letters which are actually
 "                    multiple two-letter maps (using the maplead:
 "                    maplead . each_character_in_string)
-"                    ex. maplead="\" and mapchx="abc" saves mappings for
+"                    ex. maplead="\" and mapchx="abc" saves user mappings for
 "                        \a, \b, and \c
 "                    Of course, if maplead is "", then for mapchx="abc",
 "                    mappings for a, b, and c are saved.
@@ -389,10 +394,10 @@ fun! SaveUserMaps(mapmode,maplead,mapchx,suffix)
    if amap == "|" || amap == "\<c-v>"
     let amap= "\<c-v>".amap
    endif
+   let amap                    = a:maplead.amap
    let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|:silent! ".mapmode."unmap ".amap
    if maparg(amap,mapmode) != ""
-    let maprhs= substitute(maparg(amap,mapmode),'|','<bar>','ge')
-"	let maprhs= substitute(maprhs,'"<CR>',"\<cr>",'ge')
+    let maprhs                  = substitute(maparg(amap,mapmode),'|','<bar>','ge')
    	let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|:".mapmode."map ".amap." ".maprhs
    endif
    if dounmap
@@ -407,8 +412,7 @@ fun! SaveUserMaps(mapmode,maplead,mapchx,suffix)
    endif
    let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|silent! ".mapmode."unmap ".amap
    if maparg(a:mapchx,mapmode) != ""
-    let maprhs= substitute(maparg(amap,mapmode),'|','<bar>','ge')
-"	let maprhs= substitute(maprhs,'"<CR>',"\<cr>",'ge')
+    let maprhs                  = substitute(maparg(amap,mapmode),'|','<bar>','ge')
    	let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|".mapmode."map ".amap." ".maprhs
    endif
    if dounmap
@@ -425,8 +429,7 @@ fun! SaveUserMaps(mapmode,maplead,mapchx,suffix)
 	endif
     let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|silent! ".mapmode."unmap ".amap
     if maparg(amap,mapmode) != ""
-     let maprhs= substitute(maparg(amap,mapmode),'|','<bar>','ge')
-"	 let maprhs= substitute(maprhs,'"<CR>',"\<cr>",'ge')
+     let maprhs                  = substitute(maparg(amap,mapmode),'|','<bar>','ge')
    	 let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|".mapmode."map ".amap." ".maprhs
     endif
 	if dounmap
@@ -447,7 +450,7 @@ fun! RestoreUserMaps(suffix)
    let s:restoremap_{a:suffix}= substitute(s:restoremap_{a:suffix},'|\s*$','','e')
    if s:restoremap_{a:suffix} != ""
 "   	call Decho("exe ".s:restoremap_{a:suffix})
-    exe "silent! s:restoremap_{a:suffix}"
+    exe "silent! ".s:restoremap_{a:suffix}
    endif
    unlet s:restoremap_{a:suffix}
   endif

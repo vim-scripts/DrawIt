@@ -5,7 +5,7 @@
 "             You may also use visual-block mode to select endpoints and
 "             draw lines, arrows, and ellipses.
 "
-" Date:			Nov 01, 2005
+" Date:			Jul 18, 2006
 " Maintainer:	Charles E. Campbell, Jr.  (Charles.E.Campbell.1@gsfc.nasa.gov)
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
@@ -22,16 +22,17 @@
 "
 " GetLatestVimScripts: 40 1 :AutoInstall: DrawIt.vim
 "
-"  Woe to her who is rebellious and polluted, the oppressing {{{1
-"  city! She didn't obey the voice. She didn't receive correction.
-"  She didn't trust in Yahweh. She didn't draw near to her God. (Zeph 3:1,2 WEB)
+"  (Zeph 3:1,2 WEB) Woe to her who is rebellious and polluted, the {{{1
+"  oppressing city! She didn't obey the voice. She didn't receive
+"  correction.  She didn't trust in Yahweh. She didn't draw near to her God.
 
 " ---------------------------------------------------------------------
 " Load Once: {{{1
-if &cp || exists("g:loaded_DrawIt")
+if &cp || exists("g:loaded_DrawItPlugin")
  finish
 endif
-let s:keepcpo= &cpo
+let g:loaded_DrawItPlugin = 1
+let s:keepcpo             = &cpo
 set cpo&vim
 
 " ---------------------------------------------------------------------
