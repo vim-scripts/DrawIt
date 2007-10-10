@@ -2,8 +2,8 @@
 "               save/restore mark position
 "               save/restore selected user maps
 "  Author:	Charles E. Campbell, Jr.
-"  Version:	16
-"  Date:	Feb 12, 2007
+"  Version:	17
+"  Date:	Sep 04, 2007
 "
 "  Saving Restoring Destroying Marks: {{{1
 "       call SaveMark(markname)       let savemark= SaveMark(markname)
@@ -32,7 +32,7 @@
 if &cp || exists("g:loaded_cecutil")
  finish
 endif
-let g:loaded_cecutil = "v16"
+let g:loaded_cecutil = "v17"
 let s:keepcpo        = &cpo
 set cpo&vim
 "DechoVarOn
@@ -326,6 +326,21 @@ fun! DestroyMark(markname)
   let &lz     = lzkeep
 
 "  call Dret("DestroyMark")
+endfun
+
+" ---------------------------------------------------------------------
+" QArgSplitter: to avoid \ processing by <f-args>, <q-args> is needed. {{{1
+" However, <q-args> doesn't split at all, so this one returns a list
+" with splits at all whitespace (only!), plus a leading length-of-list.
+" The resulting list:  qarglist[0] corresponds to a:0
+"                      qarglist[i] corresponds to a:{i}
+fun! QArgSplitter(qarg)
+"  call Dfunc("QArgSplitter(qarg<".a:qarg.">)")
+  let qarglist    = split(a:qarg)
+  let qarglistlen = len(qarglist)
+  let qarglist    = insert(qarglist,qarglistlen)
+"  call Dret("QArgSplitter ".string(qarglist))
+  return qarglist
 endfun
 
 " ---------------------------------------------------------------------

@@ -1,4 +1,4 @@
-*drawit.txt*	The DrawIt Tool				Jul 26, 2007
+*drawit.txt*	The DrawIt Tool				Sep 14, 2007
 
 Authors:  Charles E. Campbell, Jr.  <NdrchipO@ScampbellPfamily.AbizM> {{{1
           Sylvain Viart             <molo@multimania.com>
@@ -353,6 +353,10 @@ DRAWIT MODES						*drawit-modes* {{{2
 ==============================================================================
 4. History						*drawit-history* {{{1
 
+	9 Sep 14, 2007 * Johann-Guenter Simon fixed a bug with s:DrawErase();
+	                 it called SetDrawIt() and that call hadn't been 
+			 updated to account for the new b:di_ellipse
+			 parameter.
 	8 Feb 12, 2007 * fixed a bug which prevented multi-character user
 	                 maps from being restored properly
 	  May 03, 2007 * Extended SetDrawIt() to handle b:di_ellipse, the

@@ -3,8 +3,8 @@
 " Maintainer:	Charles E. Campbell, Jr.  (Charles.E.Campbell.1@gsfc.nasa.gov)
 " Authors:	Charles E. Campbell, Jr. (NdrchipO@ScampbellPfamily.AbizM - NOSPAM)
 "   		Sylvain Viart (molo@multimania.com)
-" Version:	8
-" Date:		Jul 26, 2007
+" Version:	9
+" Date:		Oct 10, 2007
 "
 " Quick Setup: {{{1
 "              tar -oxvf DrawIt.tar
@@ -49,7 +49,7 @@ set cpo&vim
 if !exists("s:saveposn_count")
  let s:saveposn_count= 0
 endif
-let g:loaded_DrawIt= "v8"
+let g:loaded_DrawIt= "v9"
 "DechoTabOn
 
 " =====================================================================
@@ -569,11 +569,12 @@ fun! s:DrawErase()
    let b:di_upright_save = b:di_upright
    let b:di_upleft_save  = b:di_upleft
    let b:di_cross_save   = b:di_cross
-   call SetDrawIt(' ',' ',' ',' ',' ',' ')
+   let b:di_ellipse_save = b:di_ellipse
+   call SetDrawIt(' ',' ',' ',' ',' ',' ',' ')
   else
    let b:di_erase= 0
    echo "[DrawIt]"
-   call SetDrawIt(b:di_vert_save,b:di_horiz_save,b:di_plus_save,b:di_upleft_save,b:di_upright_save,b:di_cross_save)
+   call SetDrawIt(b:di_vert_save,b:di_horiz_save,b:di_plus_save,b:di_upleft_save,b:di_upright_save,b:di_cross_save,b:di_ellipse_save)
   endif
 "  call Dret("s:DrawErase")
 endfun
