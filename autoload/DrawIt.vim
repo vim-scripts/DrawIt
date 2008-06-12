@@ -1,10 +1,10 @@
-" DrawIt.vim: a simple way to draw things in Vim -- just put this file in
+" DrawIt.vim: a simple way to draw things in Vim
 "
-" Maintainer:	Charles E. Campbell, Jr.  (Charles.E.Campbell.1@gsfc.nasa.gov)
-" Authors:	Charles E. Campbell, Jr. (NdrchipO@ScampbellPfamily.AbizM - NOSPAM)
+" Maintainer:	Charles E. Campbell, Jr.
+" Authors:	Charles E. Campbell, Jr. <NdrOchipS@PcampbellAfamily.Mbiz> - NOSPAM
 "   		Sylvain Viart (molo@multimania.com)
-" Version:	9
-" Date:		Oct 10, 2007
+" Version:	10
+" Date:		Jun 12, 2008
 "
 " Quick Setup: {{{1
 "              tar -oxvf DrawIt.tar
@@ -49,7 +49,7 @@ set cpo&vim
 if !exists("s:saveposn_count")
  let s:saveposn_count= 0
 endif
-let g:loaded_DrawIt= "v9"
+let g:loaded_DrawIt= "v10"
 "DechoTabOn
 
 " =====================================================================
@@ -1573,6 +1573,9 @@ fun! s:CLeftStart()
   if s:cleft_height < 0
    let s:cleft_height= -s:cleft_height
   endif
+  if exists("s:cleft_oldblock")
+   unlet s:cleft_oldblock
+  endif
 "  call Decho("blocksize: ".s:cleft_height."x".s:cleft_width)
   noremap <silent> <c-leftdrag>    :<c-u>call <SID>CLeftDrag()<cr>
   noremap <silent> <c-leftrelease> <leftmouse>:<c-u>call <SID>CLeftRelease()<cr>
@@ -1592,10 +1595,6 @@ fun! s:CLeftDrag()
 "   call Decho("draw prior contents<".s:cleft_oldblock.">")
    exe 'let @'.b:drawit_brush.'=s:cleft_oldblock'
    call s:PutBlock(b:drawit_brush,1)
-  else
-   " first move; put blanks where text had been
-"   call Decho("first move, put blanks where text was")
-   norm! gvr 
   endif
 
   " move cursor to <leftmouse> position
@@ -1613,6 +1612,7 @@ fun! s:CLeftDrag()
    exe "silent! norm! \<c-v>".s:cleft_height.'j"'.b:drawit_brush.'y'
   endif
   exe "let s:cleft_oldblock= @".b:drawit_brush
+"  call Decho("s:cleft_oldblock=@".b:drawit_brush)
 "  call Decho("cleft_height=".s:cleft_height." cleft_width=".s:cleft_width)
 "  call Decho("save contents<".s:cleft_oldblock.">")
 

@@ -1,4 +1,4 @@
-*drawit.txt*	The DrawIt Tool				Sep 14, 2007
+*drawit.txt*	The DrawIt Tool				Jun 12, 2008
 
 Authors:  Charles E. Campbell, Jr.  <NdrchipO@ScampbellPfamily.AbizM> {{{1
           Sylvain Viart             <molo@multimania.com>
@@ -353,6 +353,8 @@ DRAWIT MODES						*drawit-modes* {{{2
 ==============================================================================
 4. History						*drawit-history* {{{1
 
+	10 Jun 12, 2008	* Fixed a bug with ctrl-leftmouse (which was leaving
+			  a space in the original selected text)
 	9 Sep 14, 2007 * Johann-Guenter Simon fixed a bug with s:DrawErase();
 	                 it called SetDrawIt() and that call hadn't been 
 			 updated to account for the new b:di_ellipse

@@ -5,8 +5,8 @@
 "             You may also use visual-block mode to select endpoints and
 "             draw lines, arrows, and ellipses.
 "
-" Date:			Jul 18, 2006
-" Maintainer:	Charles E. Campbell, Jr.  (Charles.E.Campbell.1@gsfc.nasa.gov)
+" Date:			May 20, 2008
+" Maintainer:	Charles E. Campbell, Jr.  <NdrOchipS@PcampbellAfamily.Mbiz>
 " Copyright:    Copyright (C) 1999-2005 Charles E. Campbell, Jr. {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
@@ -31,7 +31,7 @@
 if &cp || exists("g:loaded_DrawItPlugin")
  finish
 endif
-let g:loaded_DrawItPlugin = 1
+let g:loaded_DrawItPlugin = "v10"
 let s:keepcpo             = &cpo
 set cpo&vim
 
