@@ -7,7 +7,7 @@ Its easy to start and stop DrawIt: use
    \di to start DrawIt and
    \ds to stop  DrawIt.
 
-The alpha/beta version is available at  http://mysite.verizon.net/astronaut/vim/index.html#DRAWIT.
+The alpha/beta version is available at  http://www.drchip.org/astronaut/vim/index.html#DRAWIT.
 
 When DrawIt has been started you may use the number pad to leave a trail of dashes, vertical bars, etc.  The lines will be expanded as needed to accomodate your drawing.  DrawIt can also draw boxes and ellipses on a blank-filled area (DrawIt can produce these) which can be useful for drawing boxes around comments.
 
