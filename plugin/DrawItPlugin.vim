@@ -5,9 +5,9 @@
 "             You may also use visual-block mode to select endpoints and
 "             draw lines, arrows, and ellipses.
 "
-" Date:			Dec 22, 2011
-" Maintainer:	Charles E. Campbell, Jr.  <NdrOchipS@PcampbellAfamily.Mbiz>
-" Copyright:    Copyright (C) 1999-2011 Charles E. Campbell, Jr. {{{1
+" Date:			Nov 28, 2012
+" Maintainer:	Charles E. Campbell  <NdrOchipS@PcampbellAfamily.Mbiz>
+" Copyright:    Copyright (C) 1999-2012 Charles E. Campbell {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
 "               notice is copied with it. Like anything else that's free,
@@ -31,27 +31,34 @@
 if &cp || exists("g:loaded_DrawItPlugin")
  finish
 endif
-let g:loaded_DrawItPlugin = "v11"
+let g:loaded_DrawItPlugin = "v12"
 let s:keepcpo             = &cpo
 set cpo&vim
 
 " ---------------------------------------------------------------------
 " Public Interface: {{{1
-if !hasmapto('<Plug>DrawItStart')
-  map <unique> <Leader>di <Plug>DrawItStart
-endif
-map <silent>        <Plug>DrawItStart  :set lz<cr>:call DrawIt#DrawItStart()<cr>:set nolz<cr>
+" commands:
 com! -nargs=0 -bang DrawIt   set lz|if <bang>0|call DrawIt#DrawItStop()|else|call DrawIt#DrawItStart()|endif|set nolz
 com! -nargs=?       DIstart  set lz|call DrawIt#DrawItStart(<q-args>)|set nolz
 com! -nargs=0       DIstop   set lz|call DrawIt#DrawItStop()|set nolz
 
-if !hasmapto('<Plug>DrawItStop')
-  map <unique> <Leader>ds <Plug>DrawItStop
-endif
-map <silent> <Plug>DrawItStop :set lz<cr>:call DrawIt#DrawItStop()<cr>:set nolz<cr>
+" commands: available only when not pre-defined
 sil! com -nargs=0 DInrml call DrawIt#SetMode('N')
 sil! com -nargs=0 DIsngl call DrawIt#SetMode('S')
 sil! com -nargs=0 DIdbl  call DrawIt#SetMode('D')
+
+" maps: users may override these maps by defining their own mappings in their .vimrc
+"       to <Plug>DrawItStart and/or <Plug>DrawItStop.  By default:
+"         \di : start DrawIt
+"         \ds : stop  DrawIt
+if !hasmapto('<Plug>DrawItStart')
+  map <unique> <Leader>di <Plug>DrawItStart
+endif
+noremap <silent>        <Plug>DrawItStart  :set lz<cr>:call DrawIt#DrawItStart()<cr>:set nolz<cr>
+if !hasmapto('<Plug>DrawItStop')
+  map <unique> <Leader>ds <Plug>DrawItStop
+endif
+noremap <silent> <Plug>DrawItStop :set lz<cr>:call DrawIt#DrawItStop()<cr>:set nolz<cr>
 
 " ---------------------------------------------------------------------
 " DrChip Menu Support: {{{1

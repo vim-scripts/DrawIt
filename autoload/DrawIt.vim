@@ -1,10 +1,10 @@
 " DrawIt.vim: a simple way to draw things in Vim
 "
-" Maintainer:	Charles E. Campbell, Jr.
-" Authors:		Charles E. Campbell, Jr. <NdrOchipS@PcampbellAfamily.Mbiz> - NOSPAM
+" Maintainer:	Charles E. Campbell
+" Authors:		Charles E. Campbell <NdrOchipS@PcampbellAfamily.Mbiz> - NOSPAM
 "   			Sylvain Viart (molo@multimania.com)
-" Version:		11
-" Date:			Jun 18, 2012
+" Version:		12
+" Date:			Mar 12, 2013
 "
 " Quick Setup: {{{1
 "              tar -oxvf DrawIt.tar
@@ -18,7 +18,7 @@
 "             You may also use visual-block mode to select endpoints and
 "             draw lines, arrows, and ellipses.
 "
-" Copyright:    Copyright (C) 1999-2011 Charles E. Campbell, Jr. {{{1
+" Copyright:    Copyright (C) 1999-2012 Charles E. Campbell {{{1
 "               Permission is hereby granted to use and distribute this code,
 "               with or without modifications, provided that this copyright
 "               notice is copied with it. Like anything else that's free,
@@ -41,7 +41,7 @@
 if &cp || exists("g:loaded_DrawIt")
  finish
 endif
-let g:loaded_DrawIt= "v11"
+let g:loaded_DrawIt= "v12"
 if v:version < 700
  echohl WarningMsg
  echo "***warning*** this version of DrawIt needs vim 7.0"
@@ -55,7 +55,11 @@ scriptencoding utf-8
 " ---------------------------------------------------------------------
 "  Script Variables: {{{1
 if !exists("g:drawit_xstrlen")
- if &enc == "latin1" || $LANG == "en_US.UTF-8" || !has("multi_byte")
+ if exists("g:Align_xstrlen")
+  let g:drawit_xstrlen= g:Align_xstrlen
+ elseif exists("g:netrw_xstrlen")
+  let g:drawit_xstrlen= g:netrw_xstrlen
+ elseif &enc == "latin1" || !has("multi_byte")
   let g:drawit_xstrlen= 0
  else
   let g:drawit_xstrlen= 1
@@ -70,7 +74,7 @@ endif
 "DechoTabOn
 
 " =====================================================================
-" DrawIt Functions: (by Charles E. Campbell, Jr.) {{{1
+" DrawIt Functions: (by Charles E. Campbell) {{{1
 " =====================================================================
 
 " ---------------------------------------------------------------------
@@ -80,9 +84,9 @@ fun! DrawIt#DrawItStart(...)
 "  call Dfunc("DrawItStart()")
 
   if a:0 > 0
-   if a:1 == 'S' || a:1 == 's'
+   if     exists("bz:di_gfxchr") && b:di_gfxchr && (a:1 == 'S' || a:1 == 's')
 	DIsngl
-   elseif a:1 == 'D' || a:1 == 'd'
+   elseif exists("bz:di_gfxchr") && b:di_gfxchr && (a:1 == 'D' || a:1 == 'd')
 	DIdbl
    elseif !exists("g:drawit_mode")
 	let g:drawit_mode= 'N'
@@ -107,16 +111,6 @@ fun! DrawIt#DrawItStart(...)
   endif
   setlocal mouse=a
 
-  " DrawItStart: set up type of strlen() calculation that's needed {{{3
-  if !exists("g:drawit_xstrlen")
-   if exists("g:Align_xstrlen")
-    let g:drawit_xstrlen= g:Align_xstrlen
-   endif
-   if !exists("g:drawit_xstrlen")
-    let g:drawit_xstrlen= 1
-   endif
-  endif
-
   " DrawItStart: set up DrawIt commands {{{3
   com! -nargs=1 -range SetBrush <line1>,<line2>call DrawIt#SetBrush(<q-args>)
   com! -count Canvas call s:Spacer(line("."),line(".") + <count> - 1,0)
@@ -130,6 +124,7 @@ fun! DrawIt#DrawItStart(...)
   if !exists("b:di_cross")  |let b:di_cross   = "X" |endif
   if !exists("b:di_ellipse")|let b:di_ellipse = '*' |endif
 
+  let b:di_gfxchr= 1
   if &enc == 'utf-8'
    " Box drawing characters using utf-8
    " │ ─ ┌ ┐ └ ┘ ┬ ┴ ├ ┤ ┼ ╱ ╲ ╳
@@ -236,6 +231,8 @@ fun! DrawIt#DrawItStart(...)
    if !exists("b:di_cSrDu")| let b:di_cSrDu= nr2char(211)| endif    " ╙
    if !exists("b:di_cDlSu")| let b:di_cDlSu= nr2char(190)| endif    " ╛
    if !exists("b:di_cSlDu")| let b:di_cSlDu= nr2char(189)| endif    " ╜
+  else
+   let b:di_gfxchr= 0
   endif
 
   " set up initial DrawIt behavior (as opposed to erase behavior)
@@ -546,14 +543,23 @@ endfun
 " DrawIt#SetMode: sets normal, single, double drawing mode, and ensures that DrawIt mode is on {{{2
 fun! DrawIt#SetMode(mode)
 "  call Dfunc("DrawIt#SetMode(mode=".a:mode.")")
-  if &enc != 'utf-8' && &enc != 'cp437'
+  if &enc == 'utf-8' || &enc == 'cp437'
+   let b:di_gfxchr= 1
+  else
+   let b:di_gfxchr= 0
+  endif
+  if b:di_gfxchr == 0
    let g:drawit_mode= 'N'
+  elseif &enc != 'utf-8' && &enc != 'cp437'
+   let g:drawit_mode = 'N'
+   let b:di_gfxchr   = 0
   elseif a:mode =~ '^[sS]$'
    let g:drawit_mode= 'S'
   elseif a:mode =~ '^[dD]$'
    let g:drawit_mode= 'D'
   else
-   let g:drawit_mode= 'N'
+   let g:drawit_mode = 'N'
+   let b:di_gfxchr   = 0
   endif
   if !exists("b:dodrawit") || b:dodrawit == 0
    call DrawIt#DrawItStart()
@@ -1330,9 +1336,16 @@ endfun
 " s:IsDrawItH: moving horizontally {{{2
 fun! s:IsDrawItH(chr)
 "  call Dfunc("s:IsDrawItH(chr<".a:chr.">)")
+   if a:chr == b:di_vert     || a:chr == b:di_plus
+"    call Dret("s:IsDrawItH 1")
+    return 1
+   endif
+   if b:di_gfxchr == 0
+"    call Dret("s:IsDrawItH 0")
+    return 0
+   endif
    if  a:chr == b:di_Svert   || a:chr == b:di_Dvert
   \ || a:chr == b:di_Splus   || a:chr == b:di_Dplus
-  \ || a:chr == b:di_vert    || a:chr == b:di_plus
   \ || a:chr == b:di_Surcorn || a:chr == b:di_Durcorn
   \ || a:chr == b:di_Slrcorn || a:chr == b:di_Dlrcorn
   \ || a:chr == b:di_Sllcorn || a:chr == b:di_Dllcorn
@@ -1365,8 +1378,15 @@ endfun
 " s:IsDrawItV: moving vertically  {{{2
 fun! s:IsDrawItV(chr)
 "  call Dfunc("s:IsDrawItV(chr<".a:chr.">)")
+   if a:chr == b:di_horiz   || a:chr == b:di_plus
+"    call Dret("s:IsDrawItH 1")
+    return 1
+   endif
+   if b:di_gfxchr == 0
+"    call Dret("s:IsDrawItH 0")
+    return 0
+   endif
    if  a:chr == b:di_Shoriz  || a:chr == b:di_Dhoriz
-  \ || a:chr == b:di_horiz   || a:chr == b:di_plus
   \ || a:chr == b:di_Splus   || a:chr == b:di_Dplus
   \ || a:chr == b:di_Surcorn || a:chr == b:di_Durcorn
   \ || a:chr == b:di_Slrcorn || a:chr == b:di_Dlrcorn
@@ -1401,16 +1421,18 @@ endfun
 fun! s:IsDnS(chr)
 "  call Dfunc("s:IsDnS(chr<".a:chr.">)")
   let ret= 0
-  if     a:chr == b:di_Svert  |let ret= 1
-  elseif a:chr == b:di_Sulcorn|let ret= 1
-  elseif a:chr == b:di_Surcorn|let ret= 1
-  elseif a:chr == b:di_Splus  |let ret= 1
-  elseif a:chr == b:di_Sdnplus|let ret= 1
-  elseif a:chr == b:di_Slplus |let ret= 1
-  elseif a:chr == b:di_Srplus |let ret= 1
-  elseif a:chr == b:di_SdDh   |let ret= 1
-  elseif a:chr == b:di_cDlSd  |let ret= 1
-  elseif a:chr == b:di_cSdDr  |let ret= 1
+  if b:di_gfxchr
+   if     a:chr == b:di_Svert  |let ret= 1
+   elseif a:chr == b:di_Sulcorn|let ret= 1
+   elseif a:chr == b:di_Surcorn|let ret= 1
+   elseif a:chr == b:di_Splus  |let ret= 1
+   elseif a:chr == b:di_Sdnplus|let ret= 1
+   elseif a:chr == b:di_Slplus |let ret= 1
+   elseif a:chr == b:di_Srplus |let ret= 1
+   elseif a:chr == b:di_SdDh   |let ret= 1
+   elseif a:chr == b:di_cDlSd  |let ret= 1
+   elseif a:chr == b:di_cSdDr  |let ret= 1
+   endif
   endif
 "  call Dret("s:IsDnS ".ret)
   return ret
@@ -1421,17 +1443,19 @@ endfun
 fun! s:IsDnD(chr)
 "  call Dfunc("s:IsDnD(chr<".a:chr.">)")
   let ret= 0
-  if     a:chr == b:di_Dvert  |let ret= 1
-  elseif a:chr == b:di_Dulcorn|let ret= 1
-  elseif a:chr == b:di_Durcorn|let ret= 1
-  elseif a:chr == b:di_Dplus  |let ret= 1
-  elseif a:chr == b:di_Ddnplus|let ret= 1
-  elseif a:chr == b:di_Dlplus |let ret= 1
-  elseif a:chr == b:di_Drplus |let ret= 1
-  elseif a:chr == b:di_cDdSr  |let ret= 1
-  elseif a:chr == b:di_cSlDd  |let ret= 1
+  if b:di_gfxchr
+   if     a:chr == b:di_Dvert  |let ret= 1
+   elseif a:chr == b:di_Dulcorn|let ret= 1
+   elseif a:chr == b:di_Durcorn|let ret= 1
+   elseif a:chr == b:di_Dplus  |let ret= 1
+   elseif a:chr == b:di_Ddnplus|let ret= 1
+   elseif a:chr == b:di_Dlplus |let ret= 1
+   elseif a:chr == b:di_Drplus |let ret= 1
+   elseif a:chr == b:di_cDdSr  |let ret= 1
+   elseif a:chr == b:di_cSlDd  |let ret= 1
+   endif
   endif
-"  call Dret("s:IsDnD ".ret)
+"   call Dret("s:IsDnD ".ret)
   return ret
 endfun
 
@@ -1440,18 +1464,20 @@ endfun
 fun! s:IsUpS(chr)
 "  call Dfunc("s:IsUpS(chr<".a:chr.">)")
   let ret= 0
-  if     a:chr == b:di_Svert  |let ret= 1
-  elseif a:chr == b:di_Sllcorn|let ret= 1
-  elseif a:chr == b:di_Slrcorn|let ret= 1
-  elseif a:chr == b:di_Splus  |let ret= 1
-  elseif a:chr == b:di_Supplus|let ret= 1
-  elseif a:chr == b:di_Slplus |let ret= 1
-  elseif a:chr == b:di_Srplus |let ret= 1
-  elseif a:chr == b:di_SuDh   |let ret= 1
-  elseif a:chr == b:di_cDrSu  |let ret= 1
-  elseif a:chr == b:di_cDlSu  |let ret= 1
+  if b:di_gfxchr
+   if     a:chr == b:di_Svert  |let ret= 1
+   elseif a:chr == b:di_Sllcorn|let ret= 1
+   elseif a:chr == b:di_Slrcorn|let ret= 1
+   elseif a:chr == b:di_Splus  |let ret= 1
+   elseif a:chr == b:di_Supplus|let ret= 1
+   elseif a:chr == b:di_Slplus |let ret= 1
+   elseif a:chr == b:di_Srplus |let ret= 1
+   elseif a:chr == b:di_SuDh   |let ret= 1
+   elseif a:chr == b:di_cDrSu  |let ret= 1
+   elseif a:chr == b:di_cDlSu  |let ret= 1
+   endif
   endif
-"  call Dret("s:IsUpS ".ret)
+"   call Dret("s:IsUpS ".ret)
   return ret
 endfun
 
@@ -1460,15 +1486,17 @@ endfun
 fun! s:IsUpD(chr)
 "  call Dfunc("s:IsUpD(chr<".a:chr.">)")
   let ret= 0
-  if     a:chr == b:di_Dvert  |let ret= 1
-  elseif a:chr == b:di_Dllcorn|let ret= 1
-  elseif a:chr == b:di_Dlrcorn|let ret= 1
-  elseif a:chr == b:di_Dplus  |let ret= 1
-  elseif a:chr == b:di_Dupplus|let ret= 1
-  elseif a:chr == b:di_Dlplus |let ret= 1
-  elseif a:chr == b:di_Drplus |let ret= 1
-  elseif a:chr == b:di_cSrDu  |let ret= 1
-  elseif a:chr == b:di_cSlDu  |let ret= 1
+  if b:di_gfxchr
+   if     a:chr == b:di_Dvert  |let ret= 1
+   elseif a:chr == b:di_Dllcorn|let ret= 1
+   elseif a:chr == b:di_Dlrcorn|let ret= 1
+   elseif a:chr == b:di_Dplus  |let ret= 1
+   elseif a:chr == b:di_Dupplus|let ret= 1
+   elseif a:chr == b:di_Dlplus |let ret= 1
+   elseif a:chr == b:di_Drplus |let ret= 1
+   elseif a:chr == b:di_cSrDu  |let ret= 1
+   elseif a:chr == b:di_cSlDu  |let ret= 1
+   endif
   endif
 "  call Dret("s:IsUpD ".ret)
   return ret
@@ -1479,15 +1507,17 @@ endfun
 fun! s:IsLeftS(chr)
 "  call Dfunc("s:IsLeftS(chr<".a:chr.">)")
   let ret= 0
-  if     a:chr == b:di_Shoriz  |let ret= 1
-  elseif a:chr == b:di_Surcorn |let ret= 1
-  elseif a:chr == b:di_Slrcorn |let ret= 1
-  elseif a:chr == b:di_Splus   |let ret= 1
-  elseif a:chr == b:di_Sdnplus |let ret= 1
-  elseif a:chr == b:di_Supplus |let ret= 1
-  elseif a:chr == b:di_Slplus  |let ret= 1
-  elseif a:chr == b:di_cSlDd   |let ret= 1
-  elseif a:chr == b:di_cSlDu   |let ret= 1
+  if b:di_gfxchr
+   if     a:chr == b:di_Shoriz  |let ret= 1
+   elseif a:chr == b:di_Surcorn |let ret= 1
+   elseif a:chr == b:di_Slrcorn |let ret= 1
+   elseif a:chr == b:di_Splus   |let ret= 1
+   elseif a:chr == b:di_Sdnplus |let ret= 1
+   elseif a:chr == b:di_Supplus |let ret= 1
+   elseif a:chr == b:di_Slplus  |let ret= 1
+   elseif a:chr == b:di_cSlDd   |let ret= 1
+   elseif a:chr == b:di_cSlDu   |let ret= 1
+   endif
   endif
 "  call Dret("s:IsLeftS ".ret)
   return ret
@@ -1498,15 +1528,17 @@ endfun
 fun! s:IsLeftD(chr)
 "  call Dfunc("s:IsLeftD(chr<".a:chr.">)")
   let ret= 0
-  if     a:chr == b:di_Dhoriz  |let ret= 1
-  elseif a:chr == b:di_Durcorn |let ret= 1
-  elseif a:chr == b:di_Dlrcorn |let ret= 1
-  elseif a:chr == b:di_Dplus   |let ret= 1
-  elseif a:chr == b:di_Ddnplus |let ret= 1
-  elseif a:chr == b:di_Dupplus |let ret= 1
-  elseif a:chr == b:di_Dlplus  |let ret= 1
-  elseif a:chr == b:di_cDlSd   |let ret= 1
-  elseif a:chr == b:di_cDlSu   |let ret= 1
+  if b:di_gfxchr
+   if     a:chr == b:di_Dhoriz  |let ret= 1
+   elseif a:chr == b:di_Durcorn |let ret= 1
+   elseif a:chr == b:di_Dlrcorn |let ret= 1
+   elseif a:chr == b:di_Dplus   |let ret= 1
+   elseif a:chr == b:di_Ddnplus |let ret= 1
+   elseif a:chr == b:di_Dupplus |let ret= 1
+   elseif a:chr == b:di_Dlplus  |let ret= 1
+   elseif a:chr == b:di_cDlSd   |let ret= 1
+   elseif a:chr == b:di_cDlSu   |let ret= 1
+   endif
   endif
 "  call Dret("s:IsLeftD ".ret)
   return ret
@@ -1517,15 +1549,17 @@ endfun
 fun! s:IsRightS(chr)
 "  call Dfunc("s:IsRightS(chr<".a:chr.">)")
   let ret= 0
-  if     a:chr == b:di_Shoriz  |let ret= 1
-  elseif a:chr == b:di_Sulcorn |let ret= 1
-  elseif a:chr == b:di_Sllcorn |let ret= 1
-  elseif a:chr == b:di_Splus   |let ret= 1
-  elseif a:chr == b:di_Sdnplus |let ret= 1
-  elseif a:chr == b:di_Supplus |let ret= 1
-  elseif a:chr == b:di_Srplus  |let ret= 1
-  elseif a:chr == b:di_cDdSr   |let ret= 1
-  elseif a:chr == b:di_cSrDu   |let ret= 1
+  if b:di_gfxchr
+   if     a:chr == b:di_Shoriz  |let ret= 1
+   elseif a:chr == b:di_Sulcorn |let ret= 1
+   elseif a:chr == b:di_Sllcorn |let ret= 1
+   elseif a:chr == b:di_Splus   |let ret= 1
+   elseif a:chr == b:di_Sdnplus |let ret= 1
+   elseif a:chr == b:di_Supplus |let ret= 1
+   elseif a:chr == b:di_Srplus  |let ret= 1
+   elseif a:chr == b:di_cDdSr   |let ret= 1
+   elseif a:chr == b:di_cSrDu   |let ret= 1
+   endif
   endif
 "  call Dret("s:IsRightS ".ret)
   return ret
@@ -1536,15 +1570,17 @@ endfun
 fun! s:IsRightD(chr)
 "  call Dfunc("s:IsRightD(chr<".a:chr.">)")
   let ret= 0
-  if     a:chr == b:di_Dhoriz  |let ret= 1
-  elseif a:chr == b:di_Dulcorn |let ret= 1
-  elseif a:chr == b:di_Dllcorn |let ret= 1
-  elseif a:chr == b:di_Dplus   |let ret= 1
-  elseif a:chr == b:di_Ddnplus |let ret= 1
-  elseif a:chr == b:di_Dupplus |let ret= 1
-  elseif a:chr == b:di_Drplus  |let ret= 1
-  elseif a:chr == b:di_cSdDr   |let ret= 1
-  elseif a:chr == b:di_cDrSu   |let ret= 1
+  if b:di_gfxchr
+   if     a:chr == b:di_Dhoriz  |let ret= 1
+   elseif a:chr == b:di_Dulcorn |let ret= 1
+   elseif a:chr == b:di_Dllcorn |let ret= 1
+   elseif a:chr == b:di_Dplus   |let ret= 1
+   elseif a:chr == b:di_Ddnplus |let ret= 1
+   elseif a:chr == b:di_Dupplus |let ret= 1
+   elseif a:chr == b:di_Drplus  |let ret= 1
+   elseif a:chr == b:di_cSdDr   |let ret= 1
+   elseif a:chr == b:di_cDrSu   |let ret= 1
+   endif
   endif
 "  call Dret("s:IsRightD ".ret)
   return ret
@@ -1728,8 +1764,19 @@ fun! s:ReplaceDownLeft()
   if curcol != virtcol("$")
    norm! vy
    let curchar= @@
-   if curchar == b:di_upleft  || curchar == b:di_cross
- \ || curchar == b:di_Supleft || curchar == b:di_Scross
+
+   " determine if curchr needs to be changed to an "X"
+   let chg2cross = 0
+   if curchar == b:di_upleft   || curchar == b:di_cross
+    let chg2cross = 1
+   elseif b:di_gfxchr
+	" performing following test only if gfx drawing characters exist
+    if curchar == b:di_Supleft || curchar == b:di_Scross
+     let chg2cross = 1
+    endif
+   endif
+
+   if chg2cross
     if g:drawit_mode == 'S'
      exe "norm! r".b:di_Scross
     else
@@ -1763,8 +1810,19 @@ fun! s:ReplaceDownRight()
    norm! vy
    let curchar= @@
 "   call Decho("case curcol#".curcol." == virtcol($)  drawit_mode<".g:drawit_mode.">  curchar<".curchar.">")
-   if curchar == b:di_upright  || curchar == b:di_cross
- \ || curchar == b:di_Supright || curchar == b:di_Scross
+
+   " determine if curchr needs to be changed to an "X"
+   let chg2cross = 0
+   if curchar == b:di_upright   || curchar == b:di_cross
+    let chg2cross = 1
+   elseif b:di_gfxchr
+	" performing following test only if gfx drawing characters exist
+    if curchar == b:di_Supright || curchar == b:di_Scross
+     let chg2cross = 1
+    endif
+   endif
+
+   if chg2cross
     if g:drawit_mode == 'S'
      exe "norm! r".b:di_Scross
     else
@@ -2327,6 +2385,7 @@ fun! s:Strlen(x)
    call setline(line("."),a:x)
    let ret= virtcol("$") - 1
    d
+   keepj norm! k
    let &l:mod= modkeep
 
   else
@@ -2557,7 +2616,12 @@ fun! s:DrawLine(x0, y0, x1, y1, horiz)
   if a:horiz == '_'
    let horiz= a:horiz
   else
-   let char = (g:drawit_mode == 'N')? b:di_horiz : ((g:drawit_mode == 'S')? b:di_Shoriz : b:di_Dhoriz)
+   let horiz = (g:drawit_mode == 'N')? b:di_horiz : ((g:drawit_mode == 'S')? b:di_Shoriz : b:di_Dhoriz)
+  endif
+  if a:horiz == '|'
+   let vertline= a:vert
+  else
+   let vertline = (g:drawit_mode == 'N')? b:di_vert : ((g:drawit_mode == 'S')? b:di_Svert : b:di_Dvert)
   endif
 
   if dx > dy
@@ -2582,7 +2646,7 @@ fun! s:DrawLine(x0, y0, x1, y1, horiz)
      endw
   else
      " move under y
-	 let char = b:di_vert
+	 let char = vertline
      call s:SetCharAt(char, x0, y0)
      let fraction = dx - (dy / 2)
      while y0 != y1

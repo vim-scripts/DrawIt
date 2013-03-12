@@ -1,9 +1,9 @@
 " cecutil.vim : save/restore window position
 "               save/restore mark position
 "               save/restore selected user maps
-"  Author:	Charles E. Campbell, Jr.
+"  Author:	Charles E. Campbell
 "  Version:	18h	ASTRO-ONLY
-"  Date:	Apr 05, 2010
+"  Date:	Oct 16, 2012
 "
 "  Saving Restoring Destroying Marks: {{{1
 "       call SaveMark(markname)       let savemark= SaveMark(markname)
@@ -459,13 +459,13 @@ fun! SaveUserMaps(mapmode,maplead,mapchx,suffix)
     let amap= "\<c-v>".amap
    endif
    let amap                    = a:maplead.amap
-   let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|:silent! ".mapmode."unmap ".dobuffer.amap
+   let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|:sil! ".mapmode."unmap ".dobuffer.amap
    if maparg(amap,mapmode) != ""
     let maprhs                  = substitute(maparg(amap,mapmode),'|','<bar>','ge')
 	let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|:".mapmode."map ".dobuffer.amap." ".maprhs
    endif
    if dounmap
-	exe "silent! ".mapmode."unmap ".dobuffer.amap
+	exe "sil! ".mapmode."unmap ".dobuffer.amap
    endif
  
   " save single map <something>
@@ -476,13 +476,13 @@ fun! SaveUserMaps(mapmode,maplead,mapchx,suffix)
     let amap= "\<c-v>".amap
 "	call Decho("amap[[".amap."]]")
    endif
-   let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|silent! ".mapmode."unmap ".dobuffer.amap
+   let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|sil! ".mapmode."unmap ".dobuffer.amap
    if maparg(a:mapchx,mapmode) != ""
     let maprhs                  = substitute(maparg(amap,mapmode),'|','<bar>','ge')
 	let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|".mapmode."map ".dobuffer.amap." ".maprhs
    endif
    if dounmap
-	exe "silent! ".mapmode."unmap ".dobuffer.amap
+	exe "sil! ".mapmode."unmap ".dobuffer.amap
    endif
  
   " save multiple maps
@@ -494,13 +494,13 @@ fun! SaveUserMaps(mapmode,maplead,mapchx,suffix)
 	if amap == "|" || amap == "\<c-v>"
 	 let amap= "\<c-v>".amap
 	endif
-	let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|silent! ".mapmode."unmap ".dobuffer.amap
+	let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|sil! ".mapmode."unmap ".dobuffer.amap
     if maparg(amap,mapmode) != ""
      let maprhs                  = substitute(maparg(amap,mapmode),'|','<bar>','ge')
 	 let s:restoremap_{a:suffix} = s:restoremap_{a:suffix}."|".mapmode."map ".dobuffer.amap." ".maprhs
     endif
 	if dounmap
-	 exe "silent! ".mapmode."unmap ".dobuffer.amap
+	 exe "sil! ".mapmode."unmap ".dobuffer.amap
 	endif
     let i= i + 1
    endwhile
@@ -517,7 +517,7 @@ fun! RestoreUserMaps(suffix)
    let s:restoremap_{a:suffix}= substitute(s:restoremap_{a:suffix},'|\s*$','','e')
    if s:restoremap_{a:suffix} != ""
 "   	call Decho("exe ".s:restoremap_{a:suffix})
-    exe "silent! ".s:restoremap_{a:suffix}
+    exe "sil! ".s:restoremap_{a:suffix}
    endif
    unlet s:restoremap_{a:suffix}
   endif

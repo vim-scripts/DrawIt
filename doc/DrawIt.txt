@@ -1,9 +1,9 @@
-*DrawIt.txt*	The DrawIt Tool				Jan 30, 2012
+DrawIt.txt*	The DrawIt Tool				Nov 29, 2012
 
-Authors:  Charles E. Campbell, Jr.  <NdrchipO@ScampbellPfamily.AbizM> {{{1
+Authors:  Charles E. Campbell  <NdrchipO@ScampbellPfamily.AbizM>
           Sylvain Viart             <molo@multimania.com>
 	  (remove NOSPAM from Campbell's email first)
-Copyright:    Copyright (C) 2004-2011 Charles E. Campbell, Jr. {{{1
+Copyright:    Copyright (C) 2004-2011 Charles E. Campbell
 	      Permission is hereby granted to use and distribute this code,
 	      with or without modifications, provided that this copyright
 	      notice is copied with it. Like anything else that's free,
@@ -405,6 +405,11 @@ DRAWIT MODES						*drawit-modes* {{{2
 ==============================================================================
 4. History						*drawit-history* {{{1
 
+	12 Nov 16, 2012 * (Alexandre Viau) arrows weren't being drawn.  Fixed
+	   Nov 29, 2012 * (Kim Jang-hwan) reported that with g:Align_xstrlen
+			   set to 3 that the cursor was moved (linewise)
+			   after invocation.  This problem also
+			   afflicted DrawIt.  Fixed.
 	11 Jan 21, 2010	* (Evan Stern) several places were using hardcoded
 			  drawing characters instead of b:di_... equivalents
 	   Feb 22, 2011	* for menus, &go =~# used to insure correct case
