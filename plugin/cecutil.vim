@@ -2,8 +2,8 @@
 "               save/restore mark position
 "               save/restore selected user maps
 "  Author:	Charles E. Campbell
-"  Version:	18h	ASTRO-ONLY
-"  Date:	Oct 16, 2012
+"  Version:	18i	NOT RELEASED
+"  Date:	Oct 21, 2013
 "
 "  Saving Restoring Destroying Marks: {{{1
 "       call SaveMark(markname)       let savemark= SaveMark(markname)

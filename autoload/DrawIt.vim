@@ -3,8 +3,8 @@
 " Maintainer:	Charles E. Campbell
 " Authors:		Charles E. Campbell <NdrOchipS@PcampbellAfamily.Mbiz> - NOSPAM
 "   			Sylvain Viart (molo@multimania.com)
-" Version:		12
-" Date:			Mar 12, 2013
+" Version:		13
+" Date:			Nov 25, 2013
 "
 " Quick Setup: {{{1
 "              tar -oxvf DrawIt.tar
@@ -41,7 +41,7 @@
 if &cp || exists("g:loaded_DrawIt")
  finish
 endif
-let g:loaded_DrawIt= "v12"
+let g:loaded_DrawIt= "v13"
 if v:version < 700
  echohl WarningMsg
  echo "***warning*** this version of DrawIt needs vim 7.0"
@@ -66,7 +66,7 @@ if !exists("g:drawit_xstrlen")
  endif
 endif
 if !exists("g:drawit_mode")
- let g:drawit_mode= 'N' " other options: =S (single-line utf-8,cp437) or =D (double-line utf-8,cp437)
+ let g:drawit_mode= 'N' " other options: =S (single-line utf-*,cp437) or =D (double-line utf-*,cp437)
 endif
 if !exists("s:saveposn_count")
  let s:saveposn_count= 0
@@ -84,9 +84,9 @@ fun! DrawIt#DrawItStart(...)
 "  call Dfunc("DrawItStart()")
 
   if a:0 > 0
-   if     exists("bz:di_gfxchr") && b:di_gfxchr && (a:1 == 'S' || a:1 == 's')
+   if     exists("b:di_gfxchr") && b:di_gfxchr && (a:1 == 'S' || a:1 == 's')
 	DIsngl
-   elseif exists("bz:di_gfxchr") && b:di_gfxchr && (a:1 == 'D' || a:1 == 'd')
+   elseif exists("b:di_gfxchr") && b:di_gfxchr && (a:1 == 'D' || a:1 == 'd')
 	DIdbl
    elseif !exists("g:drawit_mode")
 	let g:drawit_mode= 'N'
@@ -109,7 +109,7 @@ fun! DrawIt#DrawItStart(...)
   if !exists("b:drawit_keep_mouse")
    let b:drawit_keep_mouse= &mouse
   endif
-  setlocal mouse=a
+  setl mouse=a
 
   " DrawItStart: set up DrawIt commands {{{3
   com! -nargs=1 -range SetBrush <line1>,<line2>call DrawIt#SetBrush(<q-args>)
@@ -125,10 +125,11 @@ fun! DrawIt#DrawItStart(...)
   if !exists("b:di_ellipse")|let b:di_ellipse = '*' |endif
 
   let b:di_gfxchr= 1
-  if &enc == 'utf-8'
-   " Box drawing characters using utf-8
+  if &enc == 'utf-8' || &enc == 'utf-16' || &enc == "ucs-4"
+   " Box drawing characters using unicode
    " │ ─ ┌ ┐ └ ┘ ┬ ┴ ├ ┤ ┼ ╱ ╲ ╳
    " ║ ═ ╔ ╗ ╚ ╝ ╦ ╩ ╠ ╣ ╬      
+"   call Decho("box drawing characters using unicode")
    if !exists("b:di_Svert")   |let b:di_Svert   = '│' |endif
    if !exists("b:di_Dvert")   |let b:di_Dvert   = '║' |endif
    if !exists("b:di_Shoriz")  |let b:di_Shoriz  = '─' |endif
@@ -155,7 +156,7 @@ fun! DrawIt#DrawItStart(...)
    if !exists("b:di_Supleft") |let b:di_Supleft = "╲" |endif  " same as Sdownright
    if !exists("b:di_Scross")  |let b:di_Scross  = "╳" |endif
  
-   " Mixed Single-Double utf-8 box drawing characters
+   " Mixed Single-Double unicode box drawing characters
    " ╞ ╟ ╡ ╢ ╤ ╥ ╧ ╪ ╫
    if !exists("b:di_DhSd")  |let b:di_DhSd = '╤' |endif
    if !exists("b:di_DhSu")  |let b:di_DhSu = '╧' |endif
@@ -170,7 +171,7 @@ fun! DrawIt#DrawItStart(...)
    if !exists("b:di_SuDh")  |let b:di_SuDh = '╧' |endif
    if !exists("b:di_SuDr")  |let b:di_SuDr = '╞' |endif
  
-   " Mixed Single-Double utf-8 box drawing corner characters
+   " Mixed Single-Double unicode box drawing corner characters
    " ╒ ╓ ╕ ╖ ╘ ╙ ╛ ╜
    if !exists("b:di_cSdDr")| let b:di_cSdDr= '╒'| endif
    if !exists("b:di_cDdSr")| let b:di_cDdSr= '╓'| endif
@@ -180,8 +181,10 @@ fun! DrawIt#DrawItStart(...)
    if !exists("b:di_cSrDu")| let b:di_cSrDu= '╙'| endif
    if !exists("b:di_cDlSu")| let b:di_cDlSu= '╛'| endif
    if !exists("b:di_cSlDu")| let b:di_cSlDu= '╜'| endif
+
   elseif &enc == 'cp437'
    " Box drawing characters using cp437 (dos)
+"   call Decho("box drawing characters using cp437")
    if !exists("b:di_Svert")   |let b:di_Svert   = nr2char(179) |endif   " │
    if !exists("b:di_Dvert")   |let b:di_Dvert   = nr2char(186) |endif   " ║
    if !exists("b:di_Shoriz")  |let b:di_Shoriz  = nr2char(196) |endif   " ─
@@ -231,32 +234,16 @@ fun! DrawIt#DrawItStart(...)
    if !exists("b:di_cSrDu")| let b:di_cSrDu= nr2char(211)| endif    " ╙
    if !exists("b:di_cDlSu")| let b:di_cDlSu= nr2char(190)| endif    " ╛
    if !exists("b:di_cSlDu")| let b:di_cSlDu= nr2char(189)| endif    " ╜
+
   else
-   let b:di_gfxchr= 0
+"   call Decho("regular box drawing characters only")
+   let b:di_gfxchr = 0
   endif
 
   " set up initial DrawIt behavior (as opposed to erase behavior)
   let b:di_erase     = 0
 
-  " DrawItStart: option recording {{{3
-  let b:di_aikeep    = &l:ai
-  let b:di_cinkeep   = &l:cin
-  let b:di_cpokeep   = &l:cpo
-  let b:di_etkeep    = &l:et
-  let b:di_fokeep    = &l:fo
-  let b:di_gdkeep    = &l:gd
-  let b:di_gokeep    = &l:go
-  let b:di_magickeep = &l:magic
-  let b:di_remapkeep = &l:remap
-  let b:di_repkeep   = &l:report
-  let b:di_sikeep    = &l:si
-  let b:di_stakeep   = &l:sta
-  let b:di_vekeep    = &l:ve
-  setlocal cpo&vim
-  setlocal nocin noai nosi nogd sta et ve=all report=10000
-  setlocal go-=aA
-  setlocal fo-=a
-  setlocal remap magic
+  call s:DrawItSaveUserSettings()
 
   " DrawItStart: save and unmap user maps {{{3
   let b:lastdir    = 1
@@ -495,7 +482,61 @@ fun! DrawIt#DrawItStop()
   " DrawItStop: restore user map(s), if any {{{3
   call RestoreUserMaps("DrawIt")
 
-  " DrawItStop: restore user's options {{{3
+  call s:DrawItRestoreUserSettings()
+
+ " DrawItStop: DrChip menu support: {{{3
+ if has("gui_running") && has("menu") && &go =~# 'm'
+  exe 'menu   '.g:DrChipTopLvlMenu.'DrawIt.Start\ DrawIt<tab>\\di		<Leader>di'
+  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Stop\ \ DrawIt'
+  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Toggle\ Erase\ Mode'
+  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Draw\ Arrow'
+  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Draw\ Box'
+  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Draw\ Ellipse'
+  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Draw\ Flood'
+  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Draw\ Line'
+  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Make\ Blank\ Zone'
+  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Append\ Blanks'
+ endif
+" call Dret("DrawItStop")
+endfun
+
+" ---------------------------------------------------------------------
+" s:DrawItSaveUserSettings: saves user settings, changes them to be safe for DrawIt {{{2
+"                           Use s:DrawItRestoreUserSettings() to restore.
+fun! s:DrawItSaveUserSettings()
+"  call Dfunc("s:DrawItSaveUserSettings()")
+  " save user settings
+  let b:di_aikeep    = &l:ai
+  let b:di_cedit     = &cedit
+  let b:di_cinkeep   = &l:cin
+  let b:di_cpokeep   = &l:cpo
+  let b:di_etkeep    = &l:et
+  let b:di_fokeep    = &l:fo
+  let b:di_gdkeep    = &l:gd
+  let b:di_gokeep    = &l:go
+  let b:di_magickeep = &l:magic
+  let b:di_remapkeep = &l:remap
+  let b:di_repkeep   = &l:report
+  let b:di_sikeep    = &l:si
+  let b:di_stakeep   = &l:sta
+  let b:di_vekeep    = &l:ve
+
+  " change user settings to something safe for DrawIt
+  setl cpo&vim
+  setl nocin noai nosi nogd sta et ve=all report=10000
+  setl go-=aA
+  setl fo-=a
+  setl remap magic
+  set  cedit&
+"  call Dret("s:DrawItSaveUserSettings")
+endfun
+
+" ---------------------------------------------------------------------
+" s:DrawItRestoreUserSettings: restore user settings {{{2
+fun! s:DrawItRestoreUserSettings()
+"  call Dfunc("s:DrawItRestoreUserSettings()")
+
+  " restore user's settings
   let &l:ai     = b:di_aikeep
   let &l:cin    = b:di_cinkeep
   let &l:cpo    = b:di_cpokeep
@@ -522,35 +563,21 @@ fun! DrawIt#DrawItStop()
   unlet b:di_sikeep  
   unlet b:di_stakeep 
   unlet b:di_vekeep  
-
- " DrawItStop: DrChip menu support: {{{3
- if has("gui_running") && has("menu") && &go =~# 'm'
-  exe 'menu   '.g:DrChipTopLvlMenu.'DrawIt.Start\ DrawIt<tab>\\di		<Leader>di'
-  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Stop\ \ DrawIt'
-  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Toggle\ Erase\ Mode'
-  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Draw\ Arrow'
-  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Draw\ Box'
-  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Draw\ Ellipse'
-  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Draw\ Flood'
-  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Draw\ Line'
-  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Make\ Blank\ Zone'
-  exe 'unmenu '.g:DrChipTopLvlMenu.'DrawIt.Append\ Blanks'
- endif
-" call Dret("DrawItStop")
+"  call Dret("s:DrawItRestoreUserSettings")
 endfun
 
 " ---------------------------------------------------------------------
 " DrawIt#SetMode: sets normal, single, double drawing mode, and ensures that DrawIt mode is on {{{2
 fun! DrawIt#SetMode(mode)
 "  call Dfunc("DrawIt#SetMode(mode=".a:mode.")")
-  if &enc == 'utf-8' || &enc == 'cp437'
+  if &enc == 'utf-8' || &enc == 'cp437' || &enc == 'utf-16' || &enc == 'ucs-4'
    let b:di_gfxchr= 1
   else
    let b:di_gfxchr= 0
   endif
   if b:di_gfxchr == 0
    let g:drawit_mode= 'N'
-  elseif &enc != 'utf-8' && &enc != 'cp437'
+  elseif &enc != 'utf-8' && &enc != 'cp437' && &enc != 'utf-16' && &enc != 'ucs-4'
    let g:drawit_mode = 'N'
    let b:di_gfxchr   = 0
   elseif a:mode =~ '^[sS]$'
@@ -1851,7 +1878,7 @@ endfun
 " s:DrawFatRArrow: ----|> {{{2
 fun! s:DrawFatRArrow()
 "  call Dfunc("s:DrawFatRArrow()")
-  if g:drawit_mode == 'N' || &enc != 'utf-8'
+  if g:drawit_mode == 'N' || !b:di_gfxchr
    call s:MoveRight()
    norm! r|
    call s:MoveRight()
@@ -1867,7 +1894,7 @@ endfun
 " s:DrawFatLArrow: <|---- {{{2
 fun! s:DrawFatLArrow()
 "  call Dfunc("s:DrawFatLArrow()")
-  if g:drawit_mode == 'N' || &enc != 'utf-8'
+  if g:drawit_mode == 'N' || !b:di_gfxchr
    call s:MoveLeft()
    norm! r|
    call s:MoveLeft()
@@ -1885,7 +1912,7 @@ endfun
 "                 |
 fun! s:DrawFatUArrow()
 "  call Dfunc("s:DrawFatUArrow()")
-  if g:drawit_mode == 'N' || &enc != 'utf-8'
+  if g:drawit_mode == 'N' || !b:di_bfxchr
    call s:MoveUp()
    norm! r_
    call s:MoveRight()
@@ -1909,7 +1936,7 @@ endfun
 "                   '
 fun! s:DrawFatDArrow()
 "  call Dfunc("s:DrawFatDArrow()")
-  if g:drawit_mode == 'N' || &enc != 'utf-8'
+  if g:drawit_mode == 'N' || !b:di_gfxchr
    call s:MoveRight()
    norm! r_
    call s:MoveLeft()
@@ -2068,7 +2095,7 @@ fun! s:Flood()
 "  call Dfunc("s:Flood()")
 
   let s:bndry  = b:di_vert.b:di_horiz.b:di_plus.b:di_upright.b:di_upleft.b:di_cross.b:di_ellipse
-  if &enc == 'utf-8' || &enc == 'cp437'
+  if b:di_gfxchr
    let s:bndry= s:bndry.b:di_Svert.b:di_Dvert.b:di_Shoriz.b:di_Dhoriz.b:di_Sulcorn.b:di_Dulcorn.b:di_Surcorn.b:di_Durcorn.b:di_Sllcorn.b:di_Dllcorn.b:di_Slrcorn.b:di_Dlrcorn.b:di_Splus.b:di_Dplus.b:di_Sdnplus.b:di_Ddnplus.b:di_Supplus.b:di_Dupplus.b:di_Slplus.b:di_Dlplus.b:di_Srplus.b:di_Drplus.b:di_Supright.b:di_Supleft.b:di_Scross
    let s:bndry= s:bndry.b:di_DhSd.b:di_DhSu.b:di_DuSl.b:di_DuSlr.b:di_DuSr.b:di_ShDd.b:di_ShDu.b:di_SuDl.b:di_SuDlr.b:di_SdDh.b:di_SuDh.b:di_SuDr.b:di_cSdDr.b:di_cDdSr.b:di_cDlSd.b:di_cSlDd.b:di_cDrSu.b:di_cSrDu.b:di_cDlSu.b:di_cSlDu
   endif
@@ -2364,7 +2391,10 @@ endfun
 fun! s:Strlen(x)
 "  call Dfunc("s:Strlen(x<".a:x.">")
   
-  if g:drawit_xstrlen == 1
+  if v:version >= 703 && exists("*strdisplaywidth")
+   let ret= strdisplaywidth(a:x)
+ 
+  elseif g:drawit_xstrlen == 1
    " number of codepoints (Latin a + combining circumflex is two codepoints)
    " (comment from TM, solution from NW)
    let ret= strlen(substitute(a:x,'.','c','g'))
@@ -2390,11 +2420,7 @@ fun! s:Strlen(x)
 
   else
    " at least give a decent default
-   if v:version >= 703
-	let ret= strdisplaywidth(a:x)
-   else
-    let ret= strlen(a:x)
-   endif
+   let ret= strlen(a:x)
   endif
 
 "  call Dret("s:Strlen ".ret)
@@ -2588,14 +2614,17 @@ fun! s:DrawLine(x0, y0, x1, y1, horiz)
     let y0   = a:y1
     let x1   = a:x0
     let y1   = a:y0
+"	call Decho("swap points: p0(".x0.",".y0.")  p1(".x1.",".y1.")")
   else
     let x0 = a:x0
     let y0 = a:y0
     let x1 = a:x1
     let y1 = a:y1
+"	call Decho("points: p0(".x0.",".y0.")  p1(".x1.",".y1.")")
   endif
   let dy = y1 - y0
   let dx = x1 - x0
+"  call Decho("[dx=x1-x0]=".dx." [dy=y1-y0]=".dy)
 
   if dy < 0
      let dy    = -dy
@@ -2625,43 +2654,51 @@ fun! s:DrawLine(x0, y0, x1, y1, horiz)
   endif
 
   if dx > dy
-     " move under x
+"     call Decho("case dx>dy : Δ=".dx.",".dy." step=".stepx.",".stepy)
      let char = horiz
      call s:SetCharAt(char, x0, y0)
-     let fraction = dy - (dx / 2)  " same as 2*dy - dx
+     let fraction = dy - (dx / 2)  " same as 2*Δy - Δx
      while x0 != x1
 	   let char = horiz
         if fraction >= 0
            if stepx > 0
+"			call Decho("..case [fraction=".fraction."]≥0 and [stepx=".stepx."]>0: go upleft")
 			let char = (g:drawit_mode == 'N')? b:di_upleft : b:di_Supleft
            else
+"			call Decho("..case [fraction=".fraction."]≥0 and [stepx=".stepx."]≤0: go upright")
 			let char = (g:drawit_mode == 'N')? b:di_upright : b:di_Supright
            endif
-           let y0 = y0 + stepy
-           let fraction = fraction - dx    " same as fraction -= 2*dx
+           let y0       = y0 + stepy
+           let fraction = fraction - dx    " same as fraction -= 2*Δx
+"		   call Decho("....[y0+=stepy]=".y0." [fraction-=dx]=".fraction)
         endif
-        let x0 = x0 + stepx
-        let fraction = fraction + dy	" same as fraction = fraction - 2*dy
+        let x0       = x0 + stepx
+        let fraction = fraction + dy	" same as fraction = fraction - 2*Δy
+"		call Decho("..[x0+=stepx]=".x0." [fraction-=dy]=".fraction)
         call s:SetCharAt(char, x0, y0)
      endw
   else
-     " move under y
+"     call Decho("case dx≤dy : Δ=".dx.",".dy." step=".stepx.",".stepy)
 	 let char = vertline
      call s:SetCharAt(char, x0, y0)
      let fraction = dx - (dy / 2)
      while y0 != y1
 		let char = (g:drawit_mode == 'N')? b:di_vert : ((g:drawit_mode == 'S')? b:di_Svert : b:di_Dvert)
         if fraction >= 0
-           if stepy > 0 || stepx < 0
+           if stepx > 0
+"			call Decho("..case [fraction=".fraction."]≥0 and [stepx=".stepx."]>0: go upleft")
 			let char = (g:drawit_mode == 'N')? b:di_upleft : b:di_Supleft
            else
+"			call Decho("..case [fraction=".fraction."]≥0 and [stepx=".stepy."]≤0: go upright")
 			let char = (g:drawit_mode == 'N')? b:di_upright : b:di_Supright
            endif
-           let x0 = x0 + stepx
+           let x0       = x0 + stepx
            let fraction = fraction - dy
+"		   call Decho("....[x0+=stepx]=".x0." [fraction-=dy]=".fraction)
         endif
-        let y0 = y0 + stepy
+        let y0       = y0 + stepy
         let fraction = fraction + dx
+"		call Decho("..[y0+=stepy]=".y0." [fraction-=dy]=".fraction)
         call s:SetCharAt(char, x0, y0)
      endw
   endif

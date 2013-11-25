@@ -1,9 +1,9 @@
-DrawIt.txt*	The DrawIt Tool				Nov 29, 2012
+DrawIt.txt*	The DrawIt Tool				Nov 25, 2013
 
 Authors:  Charles E. Campbell  <NdrchipO@ScampbellPfamily.AbizM>
           Sylvain Viart             <molo@multimania.com>
 	  (remove NOSPAM from Campbell's email first)
-Copyright:    Copyright (C) 2004-2011 Charles E. Campbell
+Copyright:    Copyright (C) 2004-2013 Charles E. Campbell
 	      Permission is hereby granted to use and distribute this code,
 	      with or without modifications, provided that this copyright
 	      notice is copied with it. Like anything else that's free,
@@ -166,14 +166,16 @@ will restore your usual options and remove the maps DrawIt set up.
 
 A message, "[DrawIt off]", will appear on the message line.
 
+						*drawit-utf16*
+						*drawit-utf8* *drawit-unicode*
 NORMAL, SINGLE BAR, AND DOUBLE BAR MODES	*drawit-sngl* *drawit-dbl*
 :DInrml  :DIsngl  :DIdbl
 
 One may use these commands to start up Drawit in normal, single-bar, or
-double-bar modes, respectively.  When your |'encoding'| is utf-8, DrawIt
-supports drawing with special box characters (single-bar, double_bar).
-These commands are also used to switch to normal, single-bar, or
-double-bar modes.
+double-bar modes, respectively.  When your |'encoding'| is utf-8 or utf-16,
+DrawIt supports drawing with special box characters (single-bar, double_bar).
+These commands are also used to switch to normal, single-bar, or double-bar
+modes.
 
 
 USER MAP PROTECTION					*drawit-protect* {{{2
@@ -203,6 +205,9 @@ The trail will consist of -, |, \, / characters (depending on which direction
 and SetDrawIt() changes), and + and X characters where line crossings occur.
 You may use h-j-k-l to move about your display and generally use editing
 commands as you wish even while in DrawIt mode.
+
+Another tool that may be used to convert Ascii-art into nice pictures is
+available at https://github.com/christiangoltz/shaape .
 
 
 CHANGING DRAWING CHARACTERS				*drawit-setdrawit* {{{2
@@ -405,70 +410,80 @@ DRAWIT MODES						*drawit-modes* {{{2
 ==============================================================================
 4. History						*drawit-history* {{{1
 
-	12 Nov 16, 2012 * (Alexandre Viau) arrows weren't being drawn.  Fixed
-	   Nov 29, 2012 * (Kim Jang-hwan) reported that with g:Align_xstrlen
-			   set to 3 that the cursor was moved (linewise)
-			   after invocation.  This problem also
-			   afflicted DrawIt.  Fixed.
-	11 Jan 21, 2010	* (Evan Stern) several places were using hardcoded
-			  drawing characters instead of b:di_... equivalents
-	   Feb 22, 2011	* for menus, &go =~# used to insure correct case
-	   Sep 22, 2011 * ctrl-leftmouse (see |drawit-brush|) now moves the
-			  selected text entirely, no longer leaving a copy
-			  of the text where it was initially.
-	   Nov 07, 2011 * included support for utf-8 box drawing characters
-	   Nov 16, 2011 * included support for utf-8 single-double characters
-	   Nov 16, 2011 * included support for cp437 box drawing characters
-	   Dec 06, 2011 * included support for box and line drawing (\b, \l)
-			  support for utf-8 / cp437 box drawing characters
-	   Dec 06, 2011 * fat arrows now use utf-8 characters when available
-	   Jan 30, 2012 * \f supported when using utf-8/cp437 box drawing
-			  characters as boundary characters
-	10 Jun 12, 2008	* Fixed a bug with ctrl-leftmouse (which was leaving
-			  a space in the original selected text)
-	   Mar 24, 2009 * :DrawIt starts, :DrawIt! stops DrawIt mode.
-	   Mar 24, 2009 * I've included <script> modifiers to the maps to
-	                  cause rhs remapping only with mappings local to
-			  the script (see |:map-script|)
-	09 Sep 14, 2007 * Johann-Guenter Simon fixed a bug with s:DrawErase();
-	                  it called SetDrawIt() and that call hadn't been
-			  updated to account for the new b:di_ellipse
-			  parameter.
-	08 Feb 12, 2007 * fixed a bug which prevented multi-character user
-	                  maps from being restored properly
-	   May 03, 2007 * Extended SetDrawIt() to handle b:di_ellipse, the
-	                  ellipse boundary drawing character
-			* Changed "Holer" to "Canvas", and wrote AutoCanvas(),
-			  which allows one to use the visual-block drawing
-			  maps without creating a canvas first.
-			* DrawIt implements using the ctrl-leftmouse to move
-			  a visual-block selected region.
-			* Floods can now be done inside an ellipse
-			* DrawIt's maps are now all users of <buffer>
-	 7 Feb 16, 2005 * now checks that "m" is in &go before attempting to
-			  use menus
-	  Aug 17, 2005  * report option workaround
-	  Nov 01, 2005  * converted DrawIt to use autoload feature of vim 7.0
-	  Dec 28, 2005  * now uses cecutil to save/restore user maps
-	  Jan 18, 2006  * cecutil now updated to use keepjumps
-	  Jan 23, 2006  * :DIstart and :DIstop commands provided; thus users
-			  using  "set noremap" can still use DrawIt.
-	  Jan 26, 2006  * DrawIt menu entry now keeps its place
-	  Apr 10, 2006  * Brushes were implemented
-	 6 Feb 24, 2003 * The latest DrawIt now provides a fill function.
-			  \f will ask for a character to fill the figure
-			  surrounding the current cursor location.  Plus
-			  I suggest reading :he drawit-tip for those whose
-			  home/pageup/pagedown/end keys aren't all working
-			  properly with DrawIt.
-	   08/18/03     : \p[a-z] and \r[a-z] implemented
-	   08/04/03     : b:..keep variables renamed to b:di_..keep variables
-	                  StopDrawIt() now insures that erase mode is off
-	   03/11/03     : included g:drawit_insertmode handling
-	   02/21/03     : included flood function
-	   12/11/02     : deletes trailing whitespace only if holer used
-	    8/27/02     : fat arrowheads included
-	                : shift-arrow keys move but don't modify
+	13	Sep 05, 2013	* improved s:Strlen() -- now uses |strdisplaywidth()|
+				  if available.
+		Sep 13, 2013	* (Paul Wagland) found a case where lines were
+				  being drawn with the wrong character.  This
+				  affected the Bresenham-algorithm based
+				  drawing facility (ie. lines and arrows
+				  specified by visual blocks;
+				  |drawit-a|, |drawit-l|).
+	12	Nov 16, 2012	* (Alexandre Viau) arrows weren't being drawn.
+				  Fixed.
+		Nov 29, 2012	* (Kim Jang-hwan) reported that with
+				  g:Align_xstrlen set to 3 that the cursor was
+				  moved (linewise) after invocation.  This
+				  problem also afflicted DrawIt.  Fixed.
+	11	Jan 21, 2010	* (Evan Stern) several places were using
+				  hardcoded drawing characters instead of
+				  b:di_... equivalents.
+		Feb 22, 2011	* for menus, &go =~# used to insure correct case
+		Sep 22, 2011	* ctrl-leftmouse (see |drawit-brush|) now moves the
+				  selected text entirely, no longer leaving a copy
+				  of the text where it was initially.
+		Nov 07, 2011	* included support for utf-8 box drawing characters
+		Nov 16, 2011	* included support for utf-8 single-double characters
+		Nov 16, 2011	* included support for cp437 box drawing characters
+		Dec 06, 2011	* included support for box and line drawing (\b, \l)
+				  support for utf-8 / cp437 box drawing characters
+		Dec 06, 2011	* fat arrows now use utf-8 characters when available
+		Jan 30, 2012	* \f supported when using utf-8/cp437 box drawing
+				  characters as boundary characters
+	10	Jun 12, 2008	* Fixed a bug with ctrl-leftmouse (which was leaving
+				  a space in the original selected text)
+		Mar 24, 2009	* :DrawIt starts, :DrawIt! stops DrawIt mode.
+		Mar 24, 2009	* I've included <script> modifiers to the maps to
+				  cause rhs remapping only with mappings local to
+				  the script (see |:map-script|)
+	9	Sep 14, 2007	* Johann-Guenter Simon fixed a bug with s:DrawErase();
+				  it called SetDrawIt() and that call hadn't been
+				  updated to account for the new b:di_ellipse
+				  parameter.
+	8	Feb 12, 2007	* fixed a bug which prevented multi-character user
+				  maps from being restored properly
+		May 03, 2007	* Extended SetDrawIt() to handle b:di_ellipse, the
+				  ellipse boundary drawing character
+				* Changed "Holer" to "Canvas", and wrote AutoCanvas(),
+				  which allows one to use the visual-block drawing
+				  maps without creating a canvas first.
+				* DrawIt implements using the ctrl-leftmouse to move
+				  a visual-block selected region.
+				* Floods can now be done inside an ellipse
+				* DrawIt's maps are now all users of <buffer>
+	 7	Feb 16, 2005	* now checks that "m" is in &go before attempting to
+				  use menus
+		Aug 17, 2005	* report option workaround
+		Nov 01, 2005	* converted DrawIt to use autoload feature of vim 7.0
+		Dec 28, 2005	* now uses cecutil to save/restore user maps
+		Jan 18, 2006	* cecutil now updated to use keepjumps
+		Jan 23, 2006	* :DIstart and :DIstop commands provided; thus users
+				  using  "set noremap" can still use DrawIt.
+		Jan 26, 2006	* DrawIt menu entry now keeps its place
+		Apr 10, 2006	* Brushes were implemented
+	 6	Feb 24, 2003	* The latest DrawIt now provides a fill function.
+				  \f will ask for a character to fill the figure
+				  surrounding the current cursor location.  Plus
+				  I suggest reading :he drawit-tip for those whose
+				  home/pageup/pagedown/end keys aren't all working
+				  properly with DrawIt.
+		08/18/03	* \p[a-z] and \r[a-z] implemented
+		08/04/03	* b:..keep variables renamed to b:di_..keep variables
+				  StopDrawIt() now insures that erase mode is off
+		03/11/03	* included g:drawit_insertmode handling
+		02/21/03	* included flood function
+		12/11/02	* deletes trailing whitespace only if holer used
+		8/27/02		* fat arrowheads included
+				* shift-arrow keys move but don't modify
 
  ---------------------------------------------------------------------
 vim:tw=78:ts=8:ft=help:fdm=marker
